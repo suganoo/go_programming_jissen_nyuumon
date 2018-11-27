@@ -13,4 +13,10 @@ func main() {
 
 	mux.HandleFunc("/", index)
 	mux.HandleFunc("/err", err)
+
+	mux.HandleFunc("/login", login)
+	mux.HandleFunc("/logout", logout)
+	mux.HandleFunc("/signup", signup)
+	mux.HandleFunc("/signup_account", signupAccount)
+	mux.HandleFunc("/authenticate", authenticate)
 }
