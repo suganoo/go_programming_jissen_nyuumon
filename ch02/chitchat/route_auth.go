@@ -30,6 +30,29 @@ func signupAccount(writer http.ResponseWriter, request *http.Request) {
 	http.Redirect(writer, request, "/login", 302)
 }
 
+func authenticate(writer http.ResponseWriter, request *http.Request) {
+	err := request.ParseForm()
+	user, err := data.UserByEmail(request.PostFormValue("email"))
+	if err != nil {
+		danger(err, "Cannot find user")
+	}
+	if user.Password == data.Encrypt(request.PostFormValue("password")){
+		session, err := user.CreateSession()
+		if err != nil {
+			danger(err, "Cannot create session")
+		}
+		cookie := http.Cookie{
+			Name:      "_cookie",
+			Value:     session.Uuid,
+			HttpOnly:  true,
+		}
+		http.SetCookie(writer, &cookie)
+		http.Redirect(writer, request, "/", 302)
+	} else {
+		http.Redirect(writer, request, "/login", 302)
+	}
+}
+
 func logout(writer http.ResponseWriter, request *http.Request) {
 	cookie, err := request.Cookie("_cookie")
 	if err != http.ErrNoCookie {
