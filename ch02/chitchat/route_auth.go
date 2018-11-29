@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"./data"
 	"net/http"
 )
@@ -21,7 +22,7 @@ func signupAccount(writer http.ResponseWriter, request *http.Request) {
 	}
 	user := data.User{
 		Name:     request.PostFormValue("name"),
-		Eail:     request.PostFormValue("email"),
+		Email:     request.PostFormValue("email"),
 		Password: request.PostFormValue("password"),
 	}
 	if err := user.Create(); err != nil {
@@ -37,6 +38,7 @@ func authenticate(writer http.ResponseWriter, request *http.Request) {
 		danger(err, "Cannot find user")
 	}
 	if user.Password == data.Encrypt(request.PostFormValue("password")){
+		fmt.Println("password ok")
 		session, err := user.CreateSession()
 		if err != nil {
 			danger(err, "Cannot create session")
@@ -46,9 +48,11 @@ func authenticate(writer http.ResponseWriter, request *http.Request) {
 			Value:     session.Uuid,
 			HttpOnly:  true,
 		}
+		fmt.Println(cookie)
 		http.SetCookie(writer, &cookie)
 		http.Redirect(writer, request, "/", 302)
 	} else {
+		fmt.Println("password ng")
 		http.Redirect(writer, request, "/login", 302)
 	}
 }

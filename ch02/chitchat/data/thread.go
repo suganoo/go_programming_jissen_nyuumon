@@ -1,6 +1,7 @@
 package data
 
 import (
+	"fmt"
 	"time"
 )
 
@@ -66,7 +67,7 @@ func (user *User) CreateThread(topic string) (conv Thread, err error) {
 		return
 	}
 	defer stmt.Close()
-	err = stmt.QueryRow(creteUUID(),topic, user.Id, time.Now()).Scan(&conv.Id, &conv.Uuid, &conv.Topic, &conv.UserId, &conv.CreatedAt)
+	err = stmt.QueryRow(createUUID(),topic, user.Id, time.Now()).Scan(&conv.Id, &conv.Uuid, &conv.Topic, &conv.UserId, &conv.CreatedAt)
 	return
 }
 
@@ -86,6 +87,7 @@ func Threads() (threads []Thread, err error) {
 	if err != nil {
 		return
 	}
+	fmt.Println(rows)
 	for rows.Next() {
 		conv := Thread{}
 		if err = rows.Scan(&conv.Id, &conv.Uuid, &conv.Topic, &conv.UserId, &conv.CreatedAt); err != nil {
@@ -106,14 +108,14 @@ func ThreadByUUID(uuid string) (conv Thread, err error) {
 
 func (thread *Thread) User() (user User) {
 	user = User{}
-	err = Db.QueryRow("SELECT id, uuid, name, email, created_at, FROM users WHERE id = $1", thread.Uuid).
+	Db.QueryRow("SELECT id, uuid, name, email, created_at, FROM users WHERE id = $1", thread.Uuid).
 		Scan(&user.Id, &user.Uuid, &user.Name, &user.Email, &user.CreatedAt)
 	return
 }
 
 func (post *Post) User() (user User) {
 	user = User{}
-	err = Db.QueryRow("SELECT id, uuid, name, email, created_at, FROM users WHERE id = $1", post.UserId).
+	Db.QueryRow("SELECT id, uuid, name, email, created_at, FROM users WHERE id = $1", post.UserId).
 		Scan(&user.Id, &user.Uuid, &user.Name, &user.Email, &user.CreatedAt)
 	return
 }

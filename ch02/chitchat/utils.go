@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	//"./data"
+	"./data"
 	"html/template"
 	"log"
 	"net/http"
@@ -55,11 +55,16 @@ func error_message(writer http.ResponseWriter, request *http.Request, msg string
 
 func session(writer http.ResponseWriter, request *http.Request) (sess data.Session, err error) {
 	cookie, err := request.Cookie("_cookie")
-	if err != nil {
+	fmt.Println(cookie)
+	if err == nil {
+		fmt.Println("session err:")
+		fmt.Println(err)
 		sess = data.Session{Uuid: cookie.Value}
 		if ok, _ := sess.Check(); !ok {
 			err = errors.New("Invalid session")
 		}
+		fmt.Println("session:")
+		fmt.Println(sess)
 	}
 	return
 }

@@ -1,6 +1,7 @@
 package data
 
 import (
+	"fmt"
 	"time"
 )
 
@@ -22,14 +23,14 @@ type Session struct {
 }
 
 func (user *User) CreateSession() (session Session, err error) {
-	statement := "insert int session (uuid, email, user_id, created_at) value ($1, $2, $3, $4) returning id, uuid, email, user_id, created_at"
+	statement := "insert into sessions (uuid, email, user_id, created_at) values ($1, $2, $3, $4) returning id, uuid, email, user_id, created_at"
 	stmt, err := Db.Prepare(statement)
 	if err != nil {
 		return
 	}
 	defer stmt.Close()
 
-	err = stmt.QueryRow(createUUID(), user.email, user.Id, time.Now()).Scan(&session.Id, &session.Uuid, &session.Email, &session.UserId, &session.CreatedAt)
+	err = stmt.QueryRow(createUUID(), user.Email, user.Id, time.Now()).Scan(&session.Id, &session.Uuid, &session.Email, &session.UserId, &session.CreatedAt)
 	return
 }
 
@@ -41,8 +42,10 @@ func (user *User) Session() (session Session, err error) {
 }
 
 func (session *Session) Check() (valid bool, err error) {
-	err = Db.QueryRow("SELECT id, uuid, email, user_id, created_id FROM sessions WHERE uuid = $1", session.Uuid).
+	err = Db.QueryRow("SELECT id, uuid, email, user_id, created_at FROM sessions WHERE uuid = $1", session.Uuid).
 	        Scan(&session.Id, &session.Uuid, &session.Email, &session.UserId, &session.CreatedAt)
+	fmt.Println("session Check() err:")
+	fmt.Println(err)
 	if err != nil {
 		valid = false
 		return
@@ -74,7 +77,7 @@ func (session *Session) User() (user User, err error) {
 
 func SessionDeleteAll() (err error) {
 	statement := "delete from sessions"
-	_, err := Db.Exec(statement)
+	_, err = Db.Exec(statement)
 	return
 }
 
@@ -86,7 +89,7 @@ func (user *User) Create() (err error) {
 	}
 	defer stmt.Close()
 
-	err = stmt.QueryRow(createUUID(), user.Name, user.Email, user.Encypt(user.Password), time.Now()).Scan(&user.Id, &user.UUid, &user.CreatedAt)
+	err = stmt.QueryRow(createUUID(), user.Name, user.Email, Encrypt(user.Password), time.Now()).Scan(&user.Id, &user.Uuid, &user.CreatedAt)
 	return
 }
 
@@ -110,14 +113,14 @@ func (user *User) Update() (err error) {
 	}
 	defer stmt.Close()
 
-	_, err := stmt.Exec(user.Id, user.Name, user.Email)
+	_, err = stmt.Exec(user.Id, user.Name, user.Email)
 	return
 }
 
 func UserDeleteAll() (err error) {
 	statement := "delete from users"
 	_, err = Db.Exec(statement)
-	retrun
+	return
 }
 
 func Users() (users []User, err error) {
@@ -138,14 +141,14 @@ func Users() (users []User, err error) {
 
 func UserByEmail(email string) (user User, err error) {
 	user = User{}
-	err = Db.QueryRow("SELECT id, uuid, name, email, password, created_at FROm users where email = $1", email).
+	err = Db.QueryRow("SELECT id, uuid, name, email, password, created_at FROM users where email = $1", email).
 	        Scan(&user.Id, &user.Uuid, &user.Name, &user.Email, &user.Password, &user.CreatedAt)
 	return
 }
 
 func UserByUUID(uuid string) (user User, err error) {
 	user = User{}
-	err = Db.QueryRow("SELECT id, uuid, name, email, password, created_at FROm users where uuid = $1", uuid).
+	err = Db.QueryRow("SELECT id, uuid, name, email, password, created_at FROM users where uuid = $1", uuid).
 	        Scan(&user.Id, &user.Uuid, &user.Name, &user.Email, &user.Password, &user.CreatedAt)
 	return
 }
