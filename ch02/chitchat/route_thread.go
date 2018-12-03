@@ -74,7 +74,7 @@ func postThread(writer http.ResponseWriter, request *http.Request) {
 		if _, err := user.CreatePost(thread, body); err != nil {
 			danger(err, "Cannot create post")
 		}
-		url := fmt.Sprintf("/thread/read?id=", uuid)
+		url := fmt.Sprint("/thread/read?id=", uuid)
 		http.Redirect(writer, request, url, 302)
 	}
 }
