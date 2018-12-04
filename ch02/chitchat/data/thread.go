@@ -121,3 +121,10 @@ func (post *Post) User() (user User) {
 		Scan(&user.Id, &user.Uuid, &user.Name, &user.Email, &user.CreatedAt)
 	return
 }
+
+func PostDeleteAll() (err error) {
+        statement := "delete from posts"
+        _, err = Db.Exec(statement)
+        return
+}
+

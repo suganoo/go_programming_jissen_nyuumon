@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"./data"
 	"net/http"
+	"time"
 )
 
 func login(writer http.ResponseWriter, request *http.Request) {
@@ -60,9 +61,13 @@ func authenticate(writer http.ResponseWriter, request *http.Request) {
 func logout(writer http.ResponseWriter, request *http.Request) {
 	cookie, err := request.Cookie("_cookie")
 	if err != http.ErrNoCookie {
-		warning(err, "Failed to get cookie")
 		session := data.Session{Uuid: cookie.Value}
 		session.DeleteByUUID()
+		cookie.MaxAge = -1
+		cookie.Expires = time.Unix(1, 0)
+		http.SetCookie(writer, cookie)
+	} else {
+		warning(err, "Failed to get cookie")
 	}
 	http.Redirect(writer, request, "/", 302)
 }

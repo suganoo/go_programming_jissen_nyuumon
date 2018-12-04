@@ -106,7 +106,7 @@ func (user *User) Delete() (err error) {
 }
 
 func (user *User) Update() (err error) {
-	statement := "update users set name = $2, email = $3, where id = $1"
+	statement := "update users set name = $2, email = $3 where id = $1"
 	stmt, err := Db.Prepare(statement)
 	if err != nil {
 		return
