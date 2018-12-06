@@ -18,7 +18,8 @@ type Session struct {
 	Id         int
 	Uuid       string
 	Email      string
-	UserId     int
+	//UserId     int
+	UserOfSess User
 	CreatedAt  time.Time
 }
 
@@ -30,20 +31,23 @@ func (user *User) CreateSession() (session Session, err error) {
 	}
 	defer stmt.Close()
 
-	err = stmt.QueryRow(createUUID(), user.Email, user.Id, time.Now()).Scan(&session.Id, &session.Uuid, &session.Email, &session.UserId, &session.CreatedAt)
+	//err = stmt.QueryRow(createUUID(), user.Email, user.Id, time.Now()).Scan(&session.Id, &session.Uuid, &session.Email, &session.UserId, &session.CreatedAt)
+	err = stmt.QueryRow(createUUID(), user.Email, user.Id, time.Now()).Scan(&session.Id, &session.Uuid, &session.Email, &session.UserOfSess.Id, &session.CreatedAt)
 	return
 }
 
 func (user *User) Session() (session Session, err error) {
 	session = Session{}
 	err = Db.QueryRow("SELECT id, uuid, email, user_id, created_at FROM sessions WHERE user_id = $1", user.Id).
-	        Scan(&session.Id, &session.Uuid, &session.Email, &session.UserId, &session.CreatedAt)
+	        //Scan(&session.Id, &session.Uuid, &session.Email, &session.UserId, &session.CreatedAt)
+	        Scan(&session.Id, &session.Uuid, &session.Email, &session.UserOfSess.Id, &session.CreatedAt)
 	return
 }
 
 func (session *Session) Check() (valid bool, err error) {
 	err = Db.QueryRow("SELECT id, uuid, email, user_id, created_at FROM sessions WHERE uuid = $1", session.Uuid).
-	        Scan(&session.Id, &session.Uuid, &session.Email, &session.UserId, &session.CreatedAt)
+	        //Scan(&session.Id, &session.Uuid, &session.Email, &session.UserId, &session.CreatedAt)
+	        Scan(&session.Id, &session.Uuid, &session.Email, &session.UserOfSess.Id, &session.CreatedAt)
 	fmt.Println("session Check() err:")
 	fmt.Println(err)
 	if err != nil {
@@ -70,7 +74,8 @@ func (session *Session) DeleteByUUID() (err error) {
 
 func (session *Session) User() (user User, err error) {
 	user = User{}
-	err = Db.QueryRow("SELECT id, uuid, name, email, created_at FROM users WHERE id = $1", session.UserId).
+	//err = Db.QueryRow("SELECT id, uuid, name, email, created_at FROM users WHERE id = $1", session.UserId).
+	err = Db.QueryRow("SELECT id, uuid, name, email, created_at FROM users WHERE id = $1", session.UserOfSess.Id).
 	        Scan(&user.Id, &user.Uuid, &user.Name, &user.Email, &user.CreatedAt)
 	return
 }
@@ -124,7 +129,7 @@ func UserDeleteAll() (err error) {
 }
 
 func Users() (users []User, err error) {
-	rows, err := Db.Query("SELECT id, uuid, name, email, password, created_at FROm users")
+	rows, err := Db.Query("SELECT id, uuid, name, email, password, created_at FROM users")
 	if err != nil {
 		return
 	}
@@ -149,6 +154,13 @@ func UserByEmail(email string) (user User, err error) {
 func UserByUUID(uuid string) (user User, err error) {
 	user = User{}
 	err = Db.QueryRow("SELECT id, uuid, name, email, password, created_at FROM users where uuid = $1", uuid).
+	        Scan(&user.Id, &user.Uuid, &user.Name, &user.Email, &user.Password, &user.CreatedAt)
+	return
+}
+
+func UserById(id string) (user User, err error) {
+	user = User{}
+	err = Db.QueryRow("SELECT id, uuid, name, email, password, created_at FROM users where id = $1", id).
 	        Scan(&user.Id, &user.Uuid, &user.Name, &user.Email, &user.Password, &user.CreatedAt)
 	return
 }

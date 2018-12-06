@@ -91,3 +91,39 @@ func Test_Users(t *testing.T) {
 	}
 	setup()
 }
+
+func Test_CreateSession(t *testing.T) {
+	setup()
+	if err := users[0].Create(); err != nil {
+		t.Error(err, "Cannot create user.")
+	}
+	session, err := users[0].CreateSession()
+	if err != nil {
+		t.Error(err, "Cannot create session")
+	}
+	if session.UserId != users[0].Id {
+		t.Error("User not linked with session.")
+	}
+	setup()
+}
+
+func Test_GetSession(t *testing.T) {
+	setup()
+	if err := users[0].Create(); err != nil {
+		t.Error(err, "Cannot create user.")
+	}
+	session, err := users[0].CreateSession()
+	if err != nil {
+		t.Error(err, "Cannot create session")
+	}
+	s, err := users[0].Session()
+	if err != nil {
+		t.Error(err, "Cannot get session")
+	}
+	if s.Id == 0 {
+		t.Error("No session retreived")
+	}
+	if s.Id == session.Id {
+		t.Error("Different session retreived")
+	}
+}
